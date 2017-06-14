@@ -1,3 +1,9 @@
+/**/DROP/
+/**/TEMP/
+/**/packages/
+/**/bin/
+/**/obj/
+_site
+artifacts
+.vs
 .vscode
-bin
-obj
