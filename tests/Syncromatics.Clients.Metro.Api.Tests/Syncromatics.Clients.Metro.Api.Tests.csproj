@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>    
-    <TargetFrameworks>netcoreapp1.1;netstandard1.6;net46</TargetFrameworks>
+    <TargetFrameworks>netstandard1.6;net46</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="4.19.2" />
