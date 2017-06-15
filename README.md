@@ -1,6 +1,6 @@
 # Los Angeles Metropolitan Transportation Authority (Metro) API Client
 
-This is a .NET library to interact with the [Metro API](http://developer.metro.net/).
+A .NET library to interact with the [Metro API](http://developer.metro.net/).
 
 ## Building
 
