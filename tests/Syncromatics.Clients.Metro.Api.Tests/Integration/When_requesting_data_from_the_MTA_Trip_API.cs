@@ -12,7 +12,7 @@ namespace Syncromatics.Clients.Metro.Api.Tests.Integration
         {
             var clientSettings = new ClientSettings
             {
-                ServerRootUrl = "http://mtatripdev01.metro.net/",
+                ServerRootUrl = "http://not-actual-dev.metro.net/",
             };
             _subject = new MetroApiClient(clientSettings);
         }
