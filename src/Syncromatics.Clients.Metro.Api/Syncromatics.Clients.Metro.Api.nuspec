@@ -21,7 +21,7 @@
       <group targetFramework="net46">
         <dependency id="RestSharp" version="105.2.3"></dependency>
       </group>
-      <group targetFramework="netcoreapp1.1,netstandard1.6">
+      <group targetFramework="netstandard1.6">
         <dependency id="RestSharp.NetCore" version="105.2.3"></dependency>
       </group>
     </dependencies>
@@ -29,8 +29,6 @@
   <files>
     <file src="bin/$configuration$/net46/Syncromatics.Clients.Metro.Api.dll" target="lib/net46" />
     <file src="bin/$configuration$/net46/Syncromatics.Clients.Metro.Api.pdb" target="lib/net46" />
-    <file src="bin/$configuration$/netcoreapp1.1/Syncromatics.Clients.Metro.Api.dll" target="lib/netcoreapp1.1" />
-    <file src="bin/$configuration$/netcoreapp1.1/Syncromatics.Clients.Metro.Api.pdb" target="lib/netcoreapp1.1" />
     <file src="bin/$configuration$/netstandard1.6/Syncromatics.Clients.Metro.Api.dll" target="lib/netstandard1.6" />
     <file src="bin/$configuration$/netstandard1.6/Syncromatics.Clients.Metro.Api.pdb" target="lib/netstandard1.6" />
   </files>

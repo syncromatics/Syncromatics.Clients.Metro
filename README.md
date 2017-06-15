@@ -1,29 +1,21 @@
-# Los Angeles Metropolitan Transportation Authority (Metro) API Client
+# Los Angeles Metropolitan Transportation Authority (Metro) API Client 
+[![Build Status](https://travis-ci.org/syncromatics/Syncromatics.Clients.Metro.svg?branch=master)](https://travis-ci.org/syncromatics/Syncromatics.Clients.Metro)
 
 A .NET library to interact with the [Metro API](http://developer.metro.net/).
 
 ## Building
 
-This library is built using a Docker image. First build the image:
+This library is built using cake and a Docker image. To build and test:
+
+If running on windows
 
 ```
-docker build -f Dockerfile.build -t syncromatics/dotnet .
+build.ps1
 ```
 
-Next, run `build.sh` in the Docker container:
-
+If Linux:
 ```
-docker run --rm -it -v "C:/source/metro-api-client:/app" -w /app syncromatics/dotnet-build ./build.sh
-```
-
-(Note, change `C:/source/metro-api-client` to whatever the full path to the root of the repo is on your computer.)
-
-## Testing
-
-To run the tests:
-
-```
-docker run --rm -it -v "C:/source/metro-api-client:/app" -w /app/tests/Syncromatics.Clients.Metro.Api.Tests syncromatics/dotnet-build dotnet xunit
+./build.sh
 ```
 
 ## Contributing
