@@ -118,7 +118,7 @@ Task("InnerTest")
     });
 
 Task("PackageNuget")
-    .IsDependentOn("InnerTest")
+    .IsDependentOn("GetVersion")
     .Does(() =>
     {
         var packageSettings = new NuGetPackSettings
