@@ -3,6 +3,7 @@ language: csharp
 
 os: linux # Ubuntu 14.04
 dist: trusty
+group: edge
 sudo: required
 dotnet: 1.0.0-preview2-003121
 
