@@ -8,3 +8,4 @@ artifacts
 tools
 .vs
 .vscode
+*.nupkg
