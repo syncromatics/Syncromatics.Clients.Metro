@@ -10,7 +10,7 @@ This library is built using cake and a Docker image. To build and test:
 If running on windows
 
 ```
-build.ps1
+build.ps1 -Experimental
 ```
 
 If Linux:
