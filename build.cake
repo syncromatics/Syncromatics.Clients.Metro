@@ -1,159 +1,79 @@
-#tool nuget:?package=NUnit.ConsoleRunner&version=3.4.0
-#tool "nuget:?package=xunit.runner.console"
 #addin "Cake.Docker"
+#load "container.cake"
+#load "package.cake"
 
-//////////////////////////////////////////////////////////////////////
-// ARGUMENTS
-//////////////////////////////////////////////////////////////////////
+void RunTargetInContainer(string target, string arguments, params string[] includeEnvironmentVariables) {
+    var cwd = MakeAbsolute(Directory("./"));
+    var env = includeEnvironmentVariables.ToDictionary(key => key, key => EnvironmentVariable(key));
 
-var target = Argument("target", "Default");
-var configuration = Argument("configuration", "Release");
+    var missingEnv = env.Where(x => string.IsNullOrEmpty(x.Value)).ToList();
+    if (missingEnv.Any()) {
+        throw new Exception($"The following environment variables are required to be set: {string.Join(", ", missingEnv.Select(x => x.Key))}");
+    }
 
-//////////////////////////////////////////////////////////////////////
-// PREPARATION
-//////////////////////////////////////////////////////////////////////
+    var settings = new DockerRunSettings
+    {
+        Volume = new string[] { $"{cwd}:/artifacts"},
+        Workdir = "/artifacts",
+        Rm = true,
+        Env = env
+            .OrderBy(x => x.Key)
+            .Select((x) => $"{x.Key}=\"{x.Value}\"")
+            .ToArray(),
+    };
 
-// Define directories.
-var buildDir = Directory("./src/Syncromatics.Clients.Metro.Api/bin") + Directory(configuration);
-var testDir = Directory("./tests/Syncromatics.Clients.Metro.Api.Tests/bin") + Directory(configuration);
-var currentDirectory = MakeAbsolute(Directory("./"));
+    Information(string.Join(Environment.NewLine, settings.Env));
+
+    var command = $"{settings.Workdir}/build.sh -t {target} {arguments}";
+    Information(command);
+    var buildBoxImage = "syncromatics/build-box";
+    DockerPull(buildBoxImage);
+    DockerRun(settings, buildBoxImage, command);
+}
 
 var version = "";
-
-//////////////////////////////////////////////////////////////////////
-// TASKS
-//////////////////////////////////////////////////////////////////////
+var semVersion = "";
 Task("GetVersion")
     .Does(() =>
     {
-        var arguments = new ProcessSettings
+        var repositoryPath = Directory(".");
+        var branch = GitBranchCurrent(repositoryPath).FriendlyName;
+        Information($"GetVersion: Current branch is {branch}");
+        var travisBranch = EnvironmentVariable("TRAVIS_BRANCH");
+        if (branch == "(no branch)" && !string.IsNullOrEmpty(travisBranch))
         {
-            Arguments = " -c \"git describe --tags --always --long | cut -d '-' -f 1-2 | sed 's/-/./g'\"",
-            RedirectStandardOutput = true
-        };
-
-        using(var process = StartAndReturnProcess("/bin/bash", arguments))
-        {
-            process.WaitForExit();
-            var exitCode = process.GetExitCode();
-            if(exitCode != 0)
-                throw new Exception("git version did not exit cleanly");
-
-            version = process.GetStandardOutput().First();
-            Information($"Version is : {version}");
+            branch = travisBranch;
         }
+        Information($"GetVersion: Current branch (after Travis) is {branch}");
+        var prereleaseTag = Regex.Replace(branch, @"\W+", "-");
+        var describe = GitDescribe(repositoryPath, GitDescribeStrategy.Tags);
+
+        var isMaster = prereleaseTag == "master" || prereleaseTag == "-no-branch-";
+        version = string.Join(".", describe.Split(new[] { '-' }, 3).Take(2));
+        semVersion = version + (isMaster ? "" : $"-{prereleaseTag}");
     });
 
-Task("Clean")
+Task("AssignVersion")
     .IsDependentOn("GetVersion")
-    .Does(() =>
-    {
-        CleanDirectory(buildDir);
-        CleanDirectory(testDir);
+    .Does(() => {
+        CreateAssemblyInfo(File("./src/Syncromatics.Clients.Metro.Api/AssemblyInfo.cs"), new AssemblyInfoSettings {
+            Product = "Syncromatics.Clients.Metro.Api",
+            Version = version,
+            FileVersion = version,
+            InformationalVersion = semVersion,
+            Copyright = "Copyright 2017 Syncromatics Corporation",
+        });
+
     });
+
 
 Task("Build")
-    .Does(() =>
-    {
-        var settings = new DockerRunSettings
-        {
-            Volume = new string[] { $"{currentDirectory}:/artifacts"},
-            Workdir = "/artifacts",
-            Env = new string[]
-            {
-                $"TEST_URL=\"{EnvironmentVariable("TEST_URL")}\""
-            }
-        };
-
-        DockerRun(settings, "syncromatics/build-box", "/artifacts/build.sh -t InnerTest --verbosity Diagnostic");
-    });
+    .IsDependentOn("AssignVersion")
+    .Does(() => RunTargetInContainer("ContainerBuild", "--verbosity Diagnostic", "TEST_URL"));
 
 Task("Publish")
-    .Does(() =>
-    {
-        var settings = new DockerRunSettings
-        {
-            Volume = new string[] { $"{currentDirectory}:/artifacts"},
-            Workdir = "/artifacts",
-            Env = new string[]
-            {
-                $"TEST_URL=\"{EnvironmentVariable("TEST_URL")}\"",
-                $"NUGET_API_KEY=\"{EnvironmentVariable("NUGET_API_KEY")}\""
-            }
-        };
+    .IsDependentOn("Build")
+    .IsDependentOn("PublishNuget");
 
-        DockerRun(settings, "syncromatics/build-box", "/artifacts/build.sh -t PublishNuget --verbosity Diagnostic");
-    });
-
-Task("InnerRestore")
-    .IsDependentOn("Clean")
-    .Does(() =>
-    {
-        DotNetCoreRestore();
-    });
-
-Task("InnerBuild")
-    .IsDependentOn("InnerRestore")
-    .Does(() =>
-    {
-        var buildSettings = new ProcessSettings
-        {
-            Arguments = $"/property:Configuration={configuration}"
-        };
-
-        using(var process = StartAndReturnProcess("msbuild", buildSettings))
-        {
-            process.WaitForExit();
-            var exitCode = process.GetExitCode();
-            if(exitCode != 0)
-                throw new Exception("Build Failed.");
-        }
-    });
-
-Task("InnerTest")
-    .IsDependentOn("InnerBuild")
-    .Does(() =>
-    {
-        XUnit2($"/artifacts/tests/Syncromatics.Clients.Metro.Api.Tests/bin/{configuration}/net46/Syncromatics.Clients.Metro.Api.Tests.dll");
-    });
-
-Task("PackageNuget")
-    .IsDependentOn("GetVersion")
-    .Does(() =>
-    {
-        var packageSettings = new NuGetPackSettings
-        {
-            Version = version,
-            Properties = new Dictionary<string, string> 
-            {
-                { "configuration", configuration }
-            }
-        };
-
-        NuGetPack("./src/Syncromatics.Clients.Metro.Api/Syncromatics.Clients.Metro.Api.nuspec", packageSettings);
-    });
-
-Task("PublishNuget")
-    .IsDependentOn("PackageNuget")
-    .Does(() =>
-    {
-        var package = $"/artifacts/Syncromatics.Clients.Metro.Api.{version}.nupkg";
-
-        NuGetPush(package, new NuGetPushSettings {
-            Source = "https://www.nuget.org/api/v2/package",
-            ApiKey = EnvironmentVariable("NUGET_API_KEY")
-        });
-    });
-
-//////////////////////////////////////////////////////////////////////
-// TASK TARGETS
-//////////////////////////////////////////////////////////////////////
-
-Task("Default")
-    .IsDependentOn("Build");
-
-//////////////////////////////////////////////////////////////////////
-// EXECUTION
-//////////////////////////////////////////////////////////////////////
-
-RunTarget(target);
+Task("Default").IsDependentOn("Build");
+RunTarget(Argument("target", "Build"));

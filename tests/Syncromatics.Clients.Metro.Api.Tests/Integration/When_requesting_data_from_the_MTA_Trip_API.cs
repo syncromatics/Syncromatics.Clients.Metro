@@ -7,15 +7,11 @@ namespace Syncromatics.Clients.Metro.Api.Tests.Integration
 {
     public class When_requesting_data_from_the_MTA_Trip_API
     {
-        private readonly MetroApiClient _subject;
+        private readonly IMetroApi _subject;
 
         public When_requesting_data_from_the_MTA_Trip_API()
         {
-            var clientSettings = new ClientSettings
-            {
-                ServerRootUrl = Environment.GetEnvironmentVariable("TEST_URL") ?? "http://not-actual-dev.metro.net/",
-            };
-            _subject = new MetroApiClient(clientSettings);
+            _subject = MetroClient.GetInstance(Environment.GetEnvironmentVariable("TEST_URL") ?? "http://not-actual-dev.metro.net/");
         }
 
         [Theory]
@@ -24,8 +20,9 @@ namespace Syncromatics.Clients.Metro.Api.Tests.Integration
         [InlineData("11131")]
         public async void It_should_get_times_for_a_known_node(string nodeId)
         {
-            var times = await _subject.GetNodeTimes(nodeId);
+            var response = await _subject.GetNodeTimes(nodeId);
 
+            var times = response.NodeTimes;
             times.Should().NotBeNull();
             times.Should().NotBeEmpty();
             times.Select(nt => nt.CarrierName).Should().IntersectWith(new[] { "Metro" });
@@ -37,8 +34,9 @@ namespace Syncromatics.Clients.Metro.Api.Tests.Integration
         [InlineData("0")]
         public async void It_should_not_get_times_for_an_unknown_node(string nodeId)
         {
-            var times = await _subject.GetNodeTimes(nodeId);
+            var response = await _subject.GetNodeTimes(nodeId);
 
+            var times = response.NodeTimes;
             times.Should().NotBeNull();
             times.Should().BeEmpty();
         }
