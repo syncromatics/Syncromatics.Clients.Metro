@@ -28,7 +28,7 @@ namespace Syncromatics.Clients.Metro.Api.Tests.Integration
 
             times.Should().NotBeNull();
             times.Should().NotBeEmpty();
-            times.Select(nt => nt.CarrierName).Should().IntersectWith(new[] { "Metro" });
+            times.Select(nt => nt.CarrierName.ToLower()).Should().IntersectWith(new[] { "metro" });
         }
 
         [Theory]
