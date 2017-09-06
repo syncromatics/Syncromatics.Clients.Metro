@@ -42,5 +42,19 @@ namespace Syncromatics.Clients.Metro.Api.Tests.Integration
             times.Should().NotBeNull();
             times.Should().BeEmpty();
         }
+
+        [Theory]
+        [InlineData("11130-MB", null)]
+        [InlineData("11130", "MB")]
+        [InlineData("11130", null)]
+        [InlineData("11131", null)]
+        public async void It_should_get_stops_for_known_node_with_corner(string nodeId, string corner)
+        {
+            var stops = await _subject.GetStopsByNodeId(nodeId, corner);
+
+            stops.Should().NotBeNull();
+            stops.Should().NotBeEmpty();
+            stops.Select(x => x.NodeIdWithCorner).All(x => x.StartsWith(nodeId)).Should().BeTrue();
+        }
     }
 }
