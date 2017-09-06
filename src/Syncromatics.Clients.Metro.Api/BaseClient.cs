@@ -23,6 +23,7 @@ namespace Syncromatics.Clients.Metro.Api
                 Timeout = (int)TimeSpan.FromMinutes(5).TotalMilliseconds,
             };
             client.AddHandler("application/json", new JsonNetDeserializer());
+            client.AddHandler("text/html", new JsonNetDeserializer());
 
             var tcs = new TaskCompletionSource<T>();
             client.ExecuteAsync(request, (IRestResponse<T> response) =>

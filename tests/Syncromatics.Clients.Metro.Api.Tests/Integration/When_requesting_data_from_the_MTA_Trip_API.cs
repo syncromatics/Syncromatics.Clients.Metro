@@ -45,7 +45,7 @@ namespace Syncromatics.Clients.Metro.Api.Tests.Integration
 
         [Theory]
         [InlineData("11130-MB", null)]
-        [InlineData("11130", "MB")]
+        [InlineData("10925", "NE")]
         [InlineData("11130", null)]
         [InlineData("11131", null)]
         public async void It_should_get_stops_for_known_node_with_corner(string nodeId, string corner)
