@@ -19,26 +19,58 @@ namespace Syncromatics.Clients.Metro.Api
 
             return response.NodeTimes;
         }
+
+        public async Task<List<Stop>> GetStopsByNodeId(string nodeId, string corner = null)
+        {
+            var request = new MetroJsonRequest("/API/=stops_SYNC/Stops_N_Node.php", Method.GET)
+                .AddQueryParameter("query_type", "nodebased")
+                .AddQueryParameter("minifyresult", "false")
+                .AddQueryParameter("output_format", "json");
+
+            if (nodeId.Contains("-"))
+            {
+                request.AddQueryParameter("node_IDWC", nodeId);
+            }
+            else if (!string.IsNullOrWhiteSpace(corner))
+            {
+                request.AddQueryParameter("node_IDWC", $"{nodeId}-{corner}");
+            }
+            else
+            {
+                request.AddQueryParameter("node", nodeId);
+            }
+
+            var response = await ExecuteAsync<List<Stop>>(request);
+            return response;
+        }
+        
+        public async Task<List<Stop>> GetStopsByStopId(string stopId, string carrier = null)
+        {
+            var request = new MetroJsonRequest("/API/=stops_SYNC/Stops_N_Node.php", Method.GET)
+                .AddQueryParameter("stop_id", stopId)
+                .AddQueryParameter("query_type", "stopbased")
+                .AddQueryParameter("minifyresult", "false")
+                .AddQueryParameter("output_format", "json");
+
+            if (!string.IsNullOrWhiteSpace(carrier))
+            {
+                request.AddQueryParameter("carrier_code", carrier);
+            }
+
+            var response = await ExecuteAsync<List<Stop>>(request);
+            return response;
+        }
+
+        public async Task<List<Stop>> GetStopsByRouteId(string routeId)
+        {
+            var request = new MetroJsonRequest("/API/=stops_SYNC/Stops_SYNC.php", Method.GET)
+                .AddQueryParameter("RTE", routeId)
+                .AddQueryParameter("query_type", "routebased")
+                .AddQueryParameter("minifyresult", "false")
+                .AddQueryParameter("output_format", "json");
+
+            var response = await ExecuteAsync<List<Stop>>(request);
+            return response;
+        }
     }
 }
-
-namespace Syncromatics.Clients.Metro.Api.Models
-{
-}
-/*
- route	"METRO EXPRESS LINE 460"
-title	"DOWNTOWN LA - 6TH-LOS ANGELES"
-sign	"DOWNTOWN LA - 6TH-LOS ANGELES"
-abbrev_rte	"460"
-carrier_id	"34"
-carrier_name	"Metro"
-direction	"W"
-location	"E-6TH ST/HOPE ST&GRAND AV"
-bay	""
-stop_id	"15718"
-times	"1,8,32"
-icon	"http://mtatripdev01.metro.net/tm/logos/Metro-128x96.png"
-audio	""
-sym	""
-     
-     */
