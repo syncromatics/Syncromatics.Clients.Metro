@@ -19,13 +19,16 @@ var clientSettings = new ClientSettings { ServerRootUrl = "http://example.com/" 
 IMetroApiClient client = new MetroApiClient(clientSettings);
 ```
 
-### Retrieving arrivals per node
+### Retrieving arrival times
 
-With a known Node ID, you can retrieve upcoming arrivals at that particular Node:
+With a known Node or Stop ID, you can retrieve upcoming arrivals at that particular Node or Stop:
 
 ```csharp
 string nodeId = "11130-MB";
-var arrivals = client.GetNodeTimes(nodeId);
+var nodeArrivals = client.GetNodeTimes(nodeId);
+
+string stopId = "30002";
+var stopArrivals = client.GetStopTimes(stopId);
 ```
 
 ### Stop and route discovery

@@ -22,13 +22,26 @@ namespace Syncromatics.Clients.Metro.Api.Tests.Integration
         [InlineData("11130-MB")]
         [InlineData("11130")]
         [InlineData("11131")]
-        public async void It_should_get_times_for_a_known_node(string nodeId)
+        public async void It_should_get_times_for_a_known_node_id(string nodeId)
         {
             var times = await _subject.GetNodeTimes(nodeId);
 
             times.Should().NotBeNull();
             times.Should().NotBeEmpty();
             times.Select(nt => nt.CarrierName.ToLower()).Should().IntersectWith(new[] { "metro" });
+        }
+
+        [Theory]
+        [InlineData("30002")]
+        [InlineData("12530")]
+        [InlineData("9333")]
+        public async void It_should_get_times_for_a_known_stop_id(string stopId)
+        {
+            var times = await _subject.GetStopTimes(stopId);
+
+            times.Should().NotBeNull();
+            times.Should().NotBeEmpty();
+            times.Select(st => st.CarrierName.ToLower()).Should().IntersectWith(new[] {"metro"});
         }
 
         [Theory]
