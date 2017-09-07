@@ -6,7 +6,7 @@ A .NET library to interact with the [Metro API](http://developer.metro.net/).
 ## Usage
 
 This package exposes .NET wrappers for select Metro APIs through the `IMetroApiClient` interface and
-it's default implementation `MetroApiClient`.
+its default implementation `MetroApiClient`.
 
 ### Initializing a client
 
@@ -34,7 +34,7 @@ The client provides a handful of methods for discovering stops and routes.
 
 #### Retrieve Stops by node
 
-`GetStopsByModeIde(string nodeId, string corner = null)` will return each stop and route associated with the Node ID.  You can specify `nodeId` as either a plane Node ID (e.g. `12345`) or a Node ID with Corner (e.g. `12345-NE`).  If no corner is specified in the `nodeId` parameter, you can specify one with `corner`.  The following three calls are equivalent:
+`GetStopsByNodeId(string nodeId, string corner = null)` will return each stop and route associated with the Node ID.  You can specify `nodeId` as either a plane Node ID (e.g. `12345`) or a Node ID with Corner (e.g. `12345-NE`).  If no corner is specified in the `nodeId` parameter, you can specify one with `corner`.  The following three calls are equivalent:
 
 ```csharp
 var results1 = client.GetStopsByNodeId("12345-NE");
@@ -63,10 +63,10 @@ If desired, you can filter Stop results to return only routes that are serviced 
 var stopId = "12345";
 
 // retrieve one record for each route that services this stop
-var stops = GetStopsByStopId(stopId);
+var stops = client.GetStopsByStopId(stopId);
 
 // retrieve only stops that are serviced by Metro
-var metroStops = GetStopsById(stopId, "MT");
+var metroStops = client.GetStopsById(stopId, "MT");
 ```
 
 ## Building
