@@ -20,6 +20,15 @@ namespace Syncromatics.Clients.Metro.Api
             return response.NodeTimes;
         }
 
+        public async Task<List<NodeTime>> GetStopTimes(string stopId)
+        {
+            var response = await ExecuteAsync<NodeTimesResponse>(new MetroJsonRequest("/api/node_time.php", Method.GET)
+                .AddQueryParameter("stop_id", stopId)
+                .AddQueryParameter("format", "json"));
+
+            return response.NodeTimes;
+        }
+
         public async Task<List<Stop>> GetStopsByNodeId(string nodeId, string corner = null)
         {
             var request = new MetroJsonRequest("/API/=stops_SYNC/Stops_N_Node.php", Method.GET)

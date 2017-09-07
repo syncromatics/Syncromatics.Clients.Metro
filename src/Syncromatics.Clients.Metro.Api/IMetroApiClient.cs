@@ -17,6 +17,13 @@ namespace Syncromatics.Clients.Metro.Api
         Task<List<NodeTime>> GetNodeTimes(string nodeId);
 
         /// <summary>
+        /// Get arrival times for a Metro stop
+        /// </summary>
+        /// <param name="stopId">ID of the Metro stop</param>
+        /// <returns>List of arrival times fo rthe given <param name="stopId"/></returns>
+        Task<List<NodeTime>> GetStopTimes(string stopId);
+
+        /// <summary>
         /// Gets a list of stops for a Metro node
         /// </summary>
         /// <param name="nodeId">ID of the Metro node.  May optionally include corner in the format NODEID-CORNER, e.g. 1234-NE.</param>
