@@ -75,10 +75,7 @@ Task("Clean")
     });
 
 Task("Build")
-    .Does(() =>
-    {
-        RunTargetInContainer("InnerTest", "--verbosity Diagnostic", "TEST_URL");
-    });
+    .Does(() => RunTargetInContainer("InnerTest", "--verbosity Diagnostic", "TEST_URL"));
 
 Task("InnerRestore")
     .IsDependentOn("Clean")
@@ -112,8 +109,12 @@ Task("InnerTest")
         XUnit2($"/artifacts/tests/Syncromatics.Clients.Metro.Api.Tests/bin/{configuration}/net46/Syncromatics.Clients.Metro.Api.Tests.dll");
     });
 
+Task("Package")
+    .Does(() => RunTargetInContainer("PackageNuget", "--verbosity Diagnostic"));
+
 Task("PackageNuget")
     .IsDependentOn("GetVersion")
+    .IsDependentOn("InnerBuild")
     .Does(() =>
     {
         var packageSettings = new NuGetPackSettings
@@ -129,7 +130,8 @@ Task("PackageNuget")
     });
 
 Task("Publish")
-    .IsDependentOn("PackageNuget")
+    .IsDependentOn("GetVersion")
+    .IsDependentOn("Package")
     .Does(() =>
     {
         var package = $"./Syncromatics.Clients.Metro.Api.{version}.nupkg";

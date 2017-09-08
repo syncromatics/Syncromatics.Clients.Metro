@@ -6,6 +6,7 @@
 _site
 artifacts
 tools
+tools-container
 .vs
 .vscode
 *.nupkg
