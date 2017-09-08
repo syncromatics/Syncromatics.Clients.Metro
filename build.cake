@@ -1,6 +1,8 @@
 #tool nuget:?package=NUnit.ConsoleRunner&version=3.4.0
 #tool "nuget:?package=xunit.runner.console"
+#addin nuget:?package=Cake.Git
 #addin "Cake.Docker"
+using System.Text.RegularExpressions;
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -18,34 +20,54 @@ var buildDir = Directory("./src/Syncromatics.Clients.Metro.Api/bin") + Directory
 var testDir = Directory("./tests/Syncromatics.Clients.Metro.Api.Tests/bin") + Directory(configuration);
 var currentDirectory = MakeAbsolute(Directory("./"));
 
-var version = "";
+void RunTargetInContainer(string target, string arguments, params string[] includeEnvironmentVariables) {
+    var cwd = MakeAbsolute(Directory("./"));
+    var env = includeEnvironmentVariables.ToDictionary(key => key, key => EnvironmentVariable(key));
+
+    var missingEnv = env.Where(x => string.IsNullOrEmpty(x.Value)).ToList();
+    if (missingEnv.Any()) {
+        throw new Exception($"The following environment variables are required to be set: {string.Join(", ", missingEnv.Select(x => x.Key))}");
+    }
+
+    var settings = new DockerRunSettings
+    {
+        Volume = new string[] { $"{cwd}:/artifacts"},
+        Workdir = "/artifacts",
+        Rm = true,
+        Env = env
+            .OrderBy(x => x.Key)
+            .Select((x) => $"{x.Key}=\"{x.Value}\"")
+            .ToArray(),
+    };
+
+    Information(string.Join(Environment.NewLine, settings.Env));
+
+    var command = $"{settings.Workdir}/build.sh -t {target} {arguments}";
+    Information(command);
+    var buildBoxImage = "syncromatics/build-box";
+    DockerPull(buildBoxImage);
+    DockerRun(settings, buildBoxImage, command);
+}
 
 //////////////////////////////////////////////////////////////////////
 // TASKS
 //////////////////////////////////////////////////////////////////////
+var version = "";
+var semVersion = "";
 Task("GetVersion")
     .Does(() =>
     {
-        var arguments = new ProcessSettings
-        {
-            Arguments = " -c \"git describe --tags --always --long | cut -d '-' -f 1-2 | sed 's/-/./g'\"",
-            RedirectStandardOutput = true
-        };
+        var repositoryPath = Directory(".");
+        var branch = GitBranchCurrent(repositoryPath).FriendlyName;
+        var prereleaseTag = Regex.Replace(branch, @"\W+", "-");
+        var describe = GitDescribe(repositoryPath, GitDescribeStrategy.Tags);
 
-        using(var process = StartAndReturnProcess("/bin/bash", arguments))
-        {
-            process.WaitForExit();
-            var exitCode = process.GetExitCode();
-            if(exitCode != 0)
-                throw new Exception("git version did not exit cleanly");
-
-            version = process.GetStandardOutput().First();
-            Information($"Version is : {version}");
-        }
+        var isMaster = prereleaseTag == "master" || prereleaseTag == "-no-branch-";
+        version = string.Join(".", describe.Split(new[] { '-' }, 3).Take(2));
+        semVersion = version + (isMaster ? "" : $"-{prereleaseTag}");
     });
 
 Task("Clean")
-    .IsDependentOn("GetVersion")
     .Does(() =>
     {
         CleanDirectory(buildDir);
@@ -55,34 +77,7 @@ Task("Clean")
 Task("Build")
     .Does(() =>
     {
-        var settings = new DockerRunSettings
-        {
-            Volume = new string[] { $"{currentDirectory}:/artifacts"},
-            Workdir = "/artifacts",
-            Env = new string[]
-            {
-                $"TEST_URL=\"{EnvironmentVariable("TEST_URL")}\""
-            }
-        };
-
-        DockerRun(settings, "syncromatics/build-box", "/artifacts/build.sh -t InnerTest --verbosity Diagnostic");
-    });
-
-Task("Publish")
-    .Does(() =>
-    {
-        var settings = new DockerRunSettings
-        {
-            Volume = new string[] { $"{currentDirectory}:/artifacts"},
-            Workdir = "/artifacts",
-            Env = new string[]
-            {
-                $"TEST_URL=\"{EnvironmentVariable("TEST_URL")}\"",
-                $"NUGET_API_KEY=\"{EnvironmentVariable("NUGET_API_KEY")}\""
-            }
-        };
-
-        DockerRun(settings, "syncromatics/build-box", "/artifacts/build.sh -t PublishNuget --verbosity Diagnostic");
+        RunTargetInContainer("InnerTest", "--verbosity Diagnostic", "TEST_URL");
     });
 
 Task("InnerRestore")
@@ -133,11 +128,11 @@ Task("PackageNuget")
         NuGetPack("./src/Syncromatics.Clients.Metro.Api/Syncromatics.Clients.Metro.Api.nuspec", packageSettings);
     });
 
-Task("PublishNuget")
+Task("Publish")
     .IsDependentOn("PackageNuget")
     .Does(() =>
     {
-        var package = $"/artifacts/Syncromatics.Clients.Metro.Api.{version}.nupkg";
+        var package = $"./Syncromatics.Clients.Metro.Api.{version}.nupkg";
 
         NuGetPush(package, new NuGetPushSettings {
             Source = "https://www.nuget.org/api/v2/package",

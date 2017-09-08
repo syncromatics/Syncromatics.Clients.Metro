@@ -16,6 +16,6 @@ script:
 deploy:
   provider: script
   script:
-    - ./build.sh -t PublishNuget
+    - ./build.sh -t Publish
   on:
     branch: master
