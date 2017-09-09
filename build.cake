@@ -42,7 +42,7 @@ void RunTargetInContainer(string target, string arguments, params string[] inclu
 
     Information(string.Join(Environment.NewLine, settings.Env));
 
-    var command = $"{settings.Workdir}/build.sh -t {target} {arguments}";
+    var command = $"{settings.Workdir}/build.sh -target={target} {arguments}";
     Information(command);
     var buildBoxImage = "syncromatics/build-box";
     DockerPull(buildBoxImage);
@@ -75,7 +75,7 @@ Task("Clean")
     });
 
 Task("Build")
-    .Does(() => RunTargetInContainer("InnerTest", "--verbosity Diagnostic", "TEST_URL"));
+    .Does(() => RunTargetInContainer("InnerTest", "", "TEST_URL"));
 
 Task("InnerRestore")
     .IsDependentOn("Clean")
@@ -110,23 +110,21 @@ Task("InnerTest")
     });
 
 Task("Package")
-    .Does(() => RunTargetInContainer("PackageNuget", "--verbosity Diagnostic"));
+    .Does(() => RunTargetInContainer("PackageNuget", ""));
 
 Task("PackageNuget")
     .IsDependentOn("GetVersion")
     .IsDependentOn("InnerBuild")
     .Does(() =>
     {
-        var packageSettings = new NuGetPackSettings
+        var packageSettings = new DotNetCorePackSettings
         {
-            Version = version,
-            Properties = new Dictionary<string, string> 
-            {
-                { "configuration", configuration }
-            }
+            Configuration =  configuration,
+            OutputDirectory = "./",
+            ArgumentCustomization = args => args.Append($"/p:Version={semVersion}")
         };
 
-        NuGetPack("./src/Syncromatics.Clients.Metro.Api/Syncromatics.Clients.Metro.Api.nuspec", packageSettings);
+        DotNetCorePack(File("./src/Syncromatics.Clients.Metro.Api/Syncromatics.Clients.Metro.Api.csproj"), packageSettings);
     });
 
 Task("Publish")
@@ -134,7 +132,7 @@ Task("Publish")
     .IsDependentOn("Package")
     .Does(() =>
     {
-        var package = $"./Syncromatics.Clients.Metro.Api.{version}.nupkg";
+        var package = $"./Syncromatics.Clients.Metro.Api.{semVersion}.nupkg";
 
         NuGetPush(package, new NuGetPushSettings {
             Source = "https://www.nuget.org/api/v2/package",
