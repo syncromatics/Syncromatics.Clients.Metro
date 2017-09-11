@@ -16,6 +16,8 @@ namespace Syncromatics.Clients.Metro.Api.Models
         public string Direction { get; set; }
         public string Location { get; set; }
         public string Bay { get; set; }
+        [JsonProperty("route_identifier")]
+        public string RouteId { get; set; }
         [JsonProperty("stop_id")]
         public string StopId { get; set; }
         public string Times { get; set; }
