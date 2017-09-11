@@ -1,85 +1,64 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using RestSharp;
+using Newtonsoft.Json;
+using RestEase;
 using Syncromatics.Clients.Metro.Api.Models;
 
 namespace Syncromatics.Clients.Metro.Api
 {
-    public class MetroApiClient : BaseClient, IMetroApiClient
+    public class MetroApiClient : IMetroApiClient
     {
+        private readonly IMetroApi _client;
+
         public MetroApiClient(ClientSettings clientSettings)
-            : base(clientSettings)
-        { }
+        {
+            _client = new RestClient(clientSettings.ServerRootUrl)
+            {
+            }.For<IMetroApi>();
+        }
 
         public async Task<List<NodeTime>> GetNodeTimes(string nodeId)
         {
-            var response = await ExecuteAsync<NodeTimesResponse>(new MetroJsonRequest("/api/node_time.php", Method.GET)
-                .AddQueryParameter("node_id", nodeId)
-                .AddQueryParameter("format", "json"));
+            var result = await _client.GetNodeTimes(nodeId);
 
-            return response.NodeTimes;
+            return result.NodeTimes;
         }
 
         public async Task<List<NodeTime>> GetStopTimes(string stopId)
         {
-            var response = await ExecuteAsync<NodeTimesResponse>(new MetroJsonRequest("/api/node_time.php", Method.GET)
-                .AddQueryParameter("stop_id", stopId)
-                .AddQueryParameter("format", "json"));
+            var result = await _client.GetStopTimes(stopId);
 
-            return response.NodeTimes;
+            return result.NodeTimes;
         }
 
-        public async Task<List<Stop>> GetStopsByNodeId(string nodeId, string corner = null)
+        public Task<List<Stop>> GetStopsByNodeId(string nodeId, string corner = null)
         {
-            var request = new MetroJsonRequest("/API/=stops_SYNC/Stops_N_Node.php", Method.GET)
-                .AddQueryParameter("query_type", "nodebased")
-                .AddQueryParameter("minifyresult", "false")
-                .AddQueryParameter("output_format", "json");
-
+            string node = null;
+            string nodeWithCorner = null;
             if (nodeId.Contains("-"))
             {
-                request.AddQueryParameter("node_IDWC", nodeId);
+                nodeWithCorner = nodeId;
             }
             else if (!string.IsNullOrWhiteSpace(corner))
             {
-                request.AddQueryParameter("node_IDWC", $"{nodeId}-{corner}");
+                nodeWithCorner = $"{nodeId}-{corner}";
             }
             else
             {
-                request.AddQueryParameter("node", nodeId);
+                node = nodeId;
             }
 
-            var response = await ExecuteAsync<List<Stop>>(request);
-            return response;
-        }
-        
-        public async Task<List<Stop>> GetStopsByStopId(string stopId, string carrier = null)
-        {
-            var request = new MetroJsonRequest("/API/=stops_SYNC/Stops_N_Node.php", Method.GET)
-                .AddQueryParameter("stop_id", stopId)
-                .AddQueryParameter("query_type", "stopbased")
-                .AddQueryParameter("minifyresult", "false")
-                .AddQueryParameter("output_format", "json");
-
-            if (!string.IsNullOrWhiteSpace(carrier))
-            {
-                request.AddQueryParameter("carrier_code", carrier);
-            }
-
-            var response = await ExecuteAsync<List<Stop>>(request);
-            return response;
+            return _client.GetStops("nodebased", node_IDWC: nodeWithCorner, node: node);
         }
 
-        public async Task<List<Stop>> GetStopsByRouteId(string routeId)
+        public Task<List<Stop>> GetStopsByStopId(string stopId, string carrier = null)
         {
-            var request = new MetroJsonRequest("/API/=stops_SYNC/Stops_SYNC.php", Method.GET)
-                .AddQueryParameter("RTE", routeId)
-                .AddQueryParameter("query_type", "routebased")
-                .AddQueryParameter("minifyresult", "false")
-                .AddQueryParameter("output_format", "json");
+            return _client.GetStops("stopbased", stop_id: stopId, carrier_code: carrier);
+        }
 
-            var response = await ExecuteAsync<List<Stop>>(request);
-            return response;
+        public Task<List<Stop>> GetStopsByRouteId(string routeId)
+        {
+            return _client.GetStopsByRoute(routeId);
         }
     }
 }

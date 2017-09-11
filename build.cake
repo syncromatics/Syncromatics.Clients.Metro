@@ -1,4 +1,3 @@
-#tool nuget:?package=NUnit.ConsoleRunner&version=3.4.0
 #tool "nuget:?package=xunit.runner.console"
 #addin nuget:?package=Cake.Git
 #addin "Cake.Docker"
@@ -42,7 +41,7 @@ void RunTargetInContainer(string target, string arguments, params string[] inclu
 
     Information(string.Join(Environment.NewLine, settings.Env));
 
-    var command = $"{settings.Workdir}/build.sh -t {target} {arguments}";
+    var command = $"cake -t {target} {arguments}";
     Information(command);
     var buildBoxImage = "syncromatics/build-box";
     DockerPull(buildBoxImage);
@@ -75,7 +74,23 @@ Task("Clean")
     });
 
 Task("Build")
-    .Does(() => RunTargetInContainer("InnerTest", "--verbosity Diagnostic", "TEST_URL"));
+    .Does(() => RunTargetInContainer("InnerTest", "", "TEST_URL"));
+
+Task("Package")
+    .Does(() => RunTargetInContainer("InnerPackage", ""));
+
+Task("Publish")
+    .IsDependentOn("GetVersion")
+    .IsDependentOn("Package")
+    .Does(() =>
+    {
+        var package = $"./Syncromatics.Clients.Metro.Api.{semVersion}.nupkg";
+
+        NuGetPush(package, new NuGetPushSettings {
+            Source = "https://www.nuget.org/api/v2/package",
+            ApiKey = EnvironmentVariable("NUGET_API_KEY")
+        });
+    });
 
 Task("InnerRestore")
     .IsDependentOn("Clean")
@@ -109,37 +124,19 @@ Task("InnerTest")
         XUnit2($"/artifacts/tests/Syncromatics.Clients.Metro.Api.Tests/bin/{configuration}/net46/Syncromatics.Clients.Metro.Api.Tests.dll");
     });
 
-Task("Package")
-    .Does(() => RunTargetInContainer("PackageNuget", "--verbosity Diagnostic"));
-
-Task("PackageNuget")
+Task("InnerPackage")
     .IsDependentOn("GetVersion")
     .IsDependentOn("InnerBuild")
     .Does(() =>
     {
-        var packageSettings = new NuGetPackSettings
+        var packageSettings = new DotNetCorePackSettings
         {
-            Version = version,
-            Properties = new Dictionary<string, string> 
-            {
-                { "configuration", configuration }
-            }
+            Configuration =  configuration,
+            OutputDirectory = "./",
+            ArgumentCustomization = args => args.Append($"/p:Version={semVersion}")
         };
 
-        NuGetPack("./src/Syncromatics.Clients.Metro.Api/Syncromatics.Clients.Metro.Api.nuspec", packageSettings);
-    });
-
-Task("Publish")
-    .IsDependentOn("GetVersion")
-    .IsDependentOn("Package")
-    .Does(() =>
-    {
-        var package = $"./Syncromatics.Clients.Metro.Api.{version}.nupkg";
-
-        NuGetPush(package, new NuGetPushSettings {
-            Source = "https://www.nuget.org/api/v2/package",
-            ApiKey = EnvironmentVariable("NUGET_API_KEY")
-        });
+        DotNetCorePack(File("./src/Syncromatics.Clients.Metro.Api/Syncromatics.Clients.Metro.Api.csproj"), packageSettings);
     });
 
 //////////////////////////////////////////////////////////////////////
