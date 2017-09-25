@@ -6,6 +6,7 @@ using Syncromatics.Clients.Metro.Api.Models;
 
 namespace Syncromatics.Clients.Metro.Api
 {
+    [Header("User-Agent", "Syncromatics.Clients.Metro")]
     public interface IMetroApi
     {
         [Get("/api_test/node_time.php?format=json")]
