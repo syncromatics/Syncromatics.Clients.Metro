@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using RestEase;
@@ -7,16 +8,22 @@ namespace Syncromatics.Clients.Metro.Api
 {
     public interface IMetroApi
     {
-        [Get("/api/node_time.php")]
-        Task<NodeTimesResponse> GetNodeTimes(string node_id, string format = "json");
+        [Get("/api_test/node_time.php?format=json")]
+        Task<NodeTimesResponse> GetNodeTimes(string node_id, string getonoff = "on");
+
+        [Get("/api_test/node_time.php?format=json")]
+        Task<NodeTimesResponse> GetStopTimes(string stop_id, string getonoff = "on");
+
+        [Get("/api_test/node_time.php?format=json&notime=true")]
+        Task<NodesResponse> GetNodes(string node_id, string getonoff = "on");
+
+        [Get("/api_test/node_time.php?format=json&notime=true")]
+        Task<NodesResponse> GetStops(string stop_id, string getonoff = "on");
+
+        [Get("/API/=stops_SYNC/Stops_N_Node.php?output_format=json&minifyresult=true")]
+        Task<List<Stop>> GetStops(string query_type, string node_IDWC = null, string node = null, string stop_id = null, string carrier_code = null);
         
-        [Get("/api/node_time.php")]
-        Task<NodeTimesResponse> GetStopTimes(string stop_id, string format = "json");
-        
-        [Get("/API/=stops_SYNC/Stops_N_Node.php")]
-        Task<List<Stop>> GetStops(string query_type, string node_IDWC = null, string node = null, string stop_id = null, string carrier_code = null, string minifyresult = "true", string output_format = "json");
-        
-        [Get("/API/=stops_SYNC/Stops_SYNC.php")]
-        Task<List<Stop>> GetStopsByRoute(string RTE, string query_type = "routebased", string minifyresult = "true", string output_format = "json");
+        [Get("/API/=stops_SYNC/Stops_SYNC.php?query_type=routebased&output_format=json&minifyresult=true")]
+        Task<List<Stop>> GetStopsByRoute(string RTE);
     }
 }

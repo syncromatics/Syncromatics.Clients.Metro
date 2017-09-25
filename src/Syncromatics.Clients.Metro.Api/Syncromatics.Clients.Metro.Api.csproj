@@ -9,7 +9,7 @@
     <Description>Client to access the Metro API</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
-    <PackageReference Include="RestEase" Version="1.4.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="RestEase" Version="1.4.4" />
   </ItemGroup>
 </Project>

@@ -13,15 +13,33 @@ namespace Syncromatics.Clients.Metro.Api
         /// Get arrival times for a Metro node
         /// </summary>
         /// <param name="nodeId">ID of the Metro node</param>
+        /// <param name="stopPassageOption">Optional filter for the type of passenger passage allowed at the stop</param>
         /// <returns>List of arrival times for the given <paramref name="nodeId"/></returns>
-        Task<List<NodeTime>> GetNodeTimes(string nodeId);
+        Task<List<NodeTime>> GetNodeTimes(string nodeId, StopPassageOption stopPassageOption = StopPassageOption.AnyBoarding);
 
         /// <summary>
         /// Get arrival times for a Metro stop
         /// </summary>
         /// <param name="stopId">ID of the Metro stop</param>
+        /// <param name="stopPassageOption">Optional filter for the type of passenger passage allowed at the stop</param>
         /// <returns>List of arrival times fo rthe given <param name="stopId"/></returns>
-        Task<List<NodeTime>> GetStopTimes(string stopId);
+        Task<List<NodeTime>> GetStopTimes(string stopId, StopPassageOption stopPassageOption = StopPassageOption.AnyBoarding);
+
+        /// <summary>
+        /// Get node information for a Metro node
+        /// </summary>
+        /// <param name="nodeId">ID of the Metro node</param>
+        /// <param name="stopPassageOption">Optional filter for the type of passenger passage allowed at the stop</param>
+        /// <returns>List of nodes for the given <paramref name="nodeId"/></returns>
+        Task<List<Node>> GetNodeInformationByNodeId(string nodeId, StopPassageOption stopPassageOption = StopPassageOption.AnyBoarding);
+
+        /// <summary>
+        /// Get node information for a Metro stop
+        /// </summary>
+        /// <param name="stopId">ID of the Metro stop</param>
+        /// <param name="stopPassageOption">Optional filter for the type of passenger passage allowed at the stop</param>
+        /// <returns>List of nodes fo rthe given <param name="stopId"/></returns>
+        Task<List<Node>> GetNodeInformationByStopId(string stopId, StopPassageOption stopPassageOption = StopPassageOption.AnyBoarding);
 
         /// <summary>
         /// Gets a list of stops for a Metro node
