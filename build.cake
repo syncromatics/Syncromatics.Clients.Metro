@@ -1,6 +1,5 @@
 #tool "nuget:?package=xunit.runner.console"
 #addin nuget:?package=Cake.Git
-#addin "Cake.Docker"
 using System.Text.RegularExpressions;
 
 //////////////////////////////////////////////////////////////////////
@@ -18,35 +17,6 @@ var configuration = Argument("configuration", "Release");
 var buildDir = Directory("./src/Syncromatics.Clients.Metro.Api/bin") + Directory(configuration);
 var testDir = Directory("./tests/Syncromatics.Clients.Metro.Api.Tests/bin") + Directory(configuration);
 var currentDirectory = MakeAbsolute(Directory("./"));
-
-void RunTargetInContainer(string target, string arguments, params string[] includeEnvironmentVariables) {
-    var cwd = MakeAbsolute(Directory("./"));
-    var env = includeEnvironmentVariables.ToDictionary(key => key, key => EnvironmentVariable(key));
-
-    var missingEnv = env.Where(x => string.IsNullOrEmpty(x.Value)).ToList();
-    if (missingEnv.Any()) {
-        throw new Exception($"The following environment variables are required to be set: {string.Join(", ", missingEnv.Select(x => x.Key))}");
-    }
-
-    var settings = new DockerRunSettings
-    {
-        Volume = new string[] { $"{cwd}:/artifacts"},
-        Workdir = "/artifacts",
-        Rm = true,
-        Env = env
-            .OrderBy(x => x.Key)
-            .Select((x) => $"{x.Key}=\"{x.Value}\"")
-            .ToArray(),
-    };
-
-    Information(string.Join(Environment.NewLine, settings.Env));
-
-    var command = $"cake -t {target} {arguments}";
-    Information(command);
-    var buildBoxImage = "syncromatics/build-box";
-    DockerPull(buildBoxImage);
-    DockerRun(settings, buildBoxImage, command);
-}
 
 //////////////////////////////////////////////////////////////////////
 // TASKS
@@ -74,10 +44,10 @@ Task("Clean")
     });
 
 Task("Build")
-    .Does(() => RunTargetInContainer("InnerTest", "", "TEST_URL"));
+    .IsDependentOn("InnerTest");
 
 Task("Package")
-    .Does(() => RunTargetInContainer("InnerPackage", ""));
+    .IsDependentOn("InnerPackage");
 
 Task("Publish")
     .IsDependentOn("GetVersion")
@@ -103,25 +73,18 @@ Task("InnerBuild")
     .IsDependentOn("InnerRestore")
     .Does(() =>
     {
-        var buildSettings = new ProcessSettings
+        var settings = new DotNetCoreBuildSettings
         {
-            Arguments = $"/property:Configuration={configuration}"
+            Configuration = configuration,
         };
-
-        using(var process = StartAndReturnProcess("msbuild", buildSettings))
-        {
-            process.WaitForExit();
-            var exitCode = process.GetExitCode();
-            if(exitCode != 0)
-                throw new Exception("Build Failed.");
-        }
+        DotNetCoreBuild("./", settings);
     });
 
 Task("InnerTest")
     .IsDependentOn("InnerBuild")
     .Does(() =>
     {
-        XUnit2($"/artifacts/tests/Syncromatics.Clients.Metro.Api.Tests/bin/{configuration}/net46/Syncromatics.Clients.Metro.Api.Tests.dll");
+        XUnit2($"./tests/Syncromatics.Clients.Metro.Api.Tests/bin/{configuration}/net46/Syncromatics.Clients.Metro.Api.Tests.dll");
     });
 
 Task("InnerPackage")

@@ -5,18 +5,9 @@ os: linux
 dist: trusty
 group: edge
 sudo: required
-mono:
-  - latest
-
-services:
-  - docker
+mono: latest
+dotnet: 2.0.0
 
 script:
-  - ./build.sh
-
-deploy:
-  provider: script
-  script:
     - ./build.sh -t Publish
-  on:
-    branch: master
+  
