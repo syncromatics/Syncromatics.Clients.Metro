@@ -1,5 +1,4 @@
 #addin nuget:?package=Cake.Git
-// #addin "Cake.Docker"
 using System.Text.RegularExpressions;
 
 //////////////////////////////////////////////////////////////////////
@@ -16,36 +15,6 @@ var configuration = Argument("configuration", "Release");
 // Define directories.
 var buildDir = Directory("./src/Syncromatics.Clients.Metro.Api/bin") + Directory(configuration);
 var testDir = Directory("./tests/Syncromatics.Clients.Metro.Api.Tests/bin") + Directory(configuration);
-var currentDirectory = MakeAbsolute(Directory("./"));
-
-// void RunTargetInContainer(string target, string arguments, params string[] includeEnvironmentVariables) {
-//     var cwd = MakeAbsolute(Directory("./"));
-//     var env = includeEnvironmentVariables.ToDictionary(key => key, key => EnvironmentVariable(key));
-
-//     var missingEnv = env.Where(x => string.IsNullOrEmpty(x.Value)).ToList();
-//     if (missingEnv.Any()) {
-//         throw new Exception($"The following environment variables are required to be set: {string.Join(", ", missingEnv.Select(x => x.Key))}");
-//     }
-
-//     var settings = new DockerRunSettings
-//     {
-//         Volume = new string[] { $"{cwd}:/artifacts"},
-//         Workdir = "/artifacts",
-//         Rm = true,
-//         Env = env
-//             .OrderBy(x => x.Key)
-//             .Select((x) => $"{x.Key}=\"{x.Value}\"")
-//             .ToArray(),
-//     };
-
-//     Information(string.Join(Environment.NewLine, settings.Env));
-
-//     var command = $"cake -t {target} {arguments}";
-//     Information(command);
-//     var buildBoxImage = "syncromatics/build-box";
-//     DockerPull(buildBoxImage);
-//     DockerRun(settings, buildBoxImage, command);
-// }
 
 //////////////////////////////////////////////////////////////////////
 // TASKS
@@ -59,7 +28,7 @@ Task("GetVersion")
         var branch = GitBranchCurrent(repositoryPath).FriendlyName;
         Information($"GetVersion: Current branch is {branch}");
         var travisBranch = EnvironmentVariable("TRAVIS_BRANCH");
-        if (branch == "(no branch)" && !string.IsNullOrEmpty(travisBranch))
+        if (branch != "(no branch)" && !string.IsNullOrEmpty(travisBranch))
         {
             branch = travisBranch;
         }
@@ -81,11 +50,9 @@ Task("Clean")
 
 Task("Build")
     .IsDependentOn("InnerTest");
-    // .Does(() => RunTargetInContainer("InnerTest", "", "TEST_URL"));
 
 Task("Package")
     .IsDependentOn("InnerPackage");
-    // .Does(() => RunTargetInContainer("InnerPackage", ""));
 
 Task("Publish")
     .IsDependentOn("GetVersion")
@@ -94,7 +61,8 @@ Task("Publish")
     {
         var package = $"./Syncromatics.Clients.Metro.Api.{semVersion}.nupkg";
 
-        NuGetPush(package, new NuGetPushSettings {
+        NuGetPush(package, new NuGetPushSettings
+        {
             Source = "https://www.nuget.org/api/v2/package",
             ApiKey = EnvironmentVariable("NUGET_API_KEY")
         });
