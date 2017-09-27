@@ -133,7 +133,7 @@ Task("InnerTest")
 
 Task("InnerPackage")
     .IsDependentOn("GetVersion")
-    .IsDependentOn("InnerBuild")
+    .IsDependentOn("InnerTest")
     .Does(() =>
     {
         var packageSettings = new DotNetCorePackSettings
