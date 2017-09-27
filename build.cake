@@ -26,19 +26,19 @@ Task("GetVersion")
     {
         var repositoryPath = Directory(".");
         var branch = GitBranchCurrent(repositoryPath).FriendlyName;
-        Information($"GetVersion: Current branch is {branch}");
-        var travisBranch = EnvironmentVariable("TRAVIS_BRANCH");
+        var travisBranch = EnvironmentVariable("BRANCH");
         if (branch != "(no branch)" && !string.IsNullOrEmpty(travisBranch))
         {
             branch = travisBranch;
         }
-        Information($"GetVersion: Current branch (after Travis) is {branch}");
+        Information($"GetVersion: Current branch is {branch}");
         var prereleaseTag = Regex.Replace(branch, @"\W+", "-");
         var describe = GitDescribe(repositoryPath, GitDescribeStrategy.Tags);
 
         var isMaster = prereleaseTag == "master" || prereleaseTag == "-no-branch-";
         version = string.Join(".", describe.Split(new[] { '-' }, 3).Take(2));
         semVersion = version + (isMaster ? "" : $"-{prereleaseTag}");
+        Information($"SemVer: {semVersion}");
     });
 
 Task("Clean")
