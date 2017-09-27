@@ -74,7 +74,7 @@ var metroStops = client.GetStopsById(stopId, "MT");
 
 ## Building
 
-This library is built using cake and a Docker image. To build and test:
+This library is built using Cake. To build and test:
 
 If running on windows
 
