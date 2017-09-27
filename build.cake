@@ -81,10 +81,12 @@ Task("Clean")
     });
 
 Task("Build")
-    .Does(() => RunTargetInContainer("InnerTest", "", "TEST_URL"));
+    .IsDependentOn("InnerTest");
+    // .Does(() => RunTargetInContainer("InnerTest", "", "TEST_URL"));
 
 Task("Package")
-    .Does(() => RunTargetInContainer("InnerPackage", ""));
+    .IsDependentOn("InnerPackage");
+    // .Does(() => RunTargetInContainer("InnerPackage", ""));
 
 Task("Publish")
     .IsDependentOn("GetVersion")
@@ -110,25 +112,18 @@ Task("InnerBuild")
     .IsDependentOn("InnerRestore")
     .Does(() =>
     {
-        var buildSettings = new ProcessSettings
+        var settings = new DotNetCoreBuildSettings
         {
-            Arguments = $"/property:Configuration={configuration}"
+            Configuration = configuration,
         };
-
-        using(var process = StartAndReturnProcess("msbuild", buildSettings))
-        {
-            process.WaitForExit();
-            var exitCode = process.GetExitCode();
-            if(exitCode != 0)
-                throw new Exception("Build Failed.");
-        }
+        DotNetCoreBuild("./", settings);
     });
 
 Task("InnerTest")
     .IsDependentOn("InnerBuild")
     .Does(() =>
     {
-        XUnit2($"/artifacts/tests/Syncromatics.Clients.Metro.Api.Tests/bin/{configuration}/net46/Syncromatics.Clients.Metro.Api.Tests.dll");
+        XUnit2($"./tests/Syncromatics.Clients.Metro.Api.Tests/bin/{configuration}/net46/Syncromatics.Clients.Metro.Api.Tests.dll");
     });
 
 Task("InnerPackage")
