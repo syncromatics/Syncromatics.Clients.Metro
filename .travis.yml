@@ -6,7 +6,9 @@ dist: trusty
 group: edge
 sudo: required
 mono: latest
-dotnet: 2.0.0
+dotnet:
+- 2.0.0
+- 1.0.5
 
 script:
     - ./build.sh -t Publish
