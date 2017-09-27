@@ -5,8 +5,9 @@
 /**/obj/
 _site
 artifacts
-tools
+tools/*
 tools-container
+!tools/packages.config
 .vs
 .vscode
 *.nupkg
