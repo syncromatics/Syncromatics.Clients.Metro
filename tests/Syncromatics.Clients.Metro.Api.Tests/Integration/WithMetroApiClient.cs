@@ -10,7 +10,7 @@ namespace Syncromatics.Clients.Metro.Api.Tests.Integration
         {
             var clientSettings = new ClientSettings
             {
-                ServerRootUrl = Environment.GetEnvironmentVariable("TEST_URL") ?? "http://not-actual-dev.metro.net/",
+                ServerRootUrl = Environment.GetEnvironmentVariable("TEST_URL") ?? "http://lacmta-api.metrocloudalliance.com/",
             };
             Subject = new MetroApiClient(clientSettings);
         }

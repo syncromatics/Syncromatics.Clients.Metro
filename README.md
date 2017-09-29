@@ -10,7 +10,15 @@ its default implementation `MetroApiClient`.
 
 ### Initializing a client
 
-You'll need to know your server's root URL in order to initialize a client.  After that, the rest is easy:
+By default, this client will use Metro's production API URL.
+
+```csharp
+using Syncromatics.Client.Metro.Api;
+
+IMetroApiClient client = new MetroApiClient();
+```
+
+If you need to point to a different URL, give the client a `ClientSettings` instance.  After that, the rest is easy:
 
 ```csharp
 using Syncromatics.Client.Metro.Api;

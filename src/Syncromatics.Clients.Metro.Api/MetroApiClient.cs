@@ -16,6 +16,10 @@ namespace Syncromatics.Clients.Metro.Api
     {
         private readonly IMetroApi _client;
 
+        public MetroApiClient()
+            : this(new ClientSettings())
+        { }
+        
         public MetroApiClient(ClientSettings clientSettings)
         {
             _client = new RestClient(clientSettings.ServerRootUrl)
