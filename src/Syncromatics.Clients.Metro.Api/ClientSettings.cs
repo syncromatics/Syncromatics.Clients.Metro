@@ -2,6 +2,6 @@
 {
     public class ClientSettings
     {
-        public string ServerRootUrl { get; set; }
+        public string ServerRootUrl { get; set; } = "http://lacmta-api.metrocloudalliance.com/api/";
     }
 }
