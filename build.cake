@@ -25,20 +25,29 @@ Task("GetVersion")
     .Does(() =>
     {
         var repositoryPath = Directory(".");
-        var travisPullRequest = EnvironmentVariable("TRAVIS_PULL_REQUEST");
-        var travisBranch = EnvironmentVariable("TRAVIS_BRANCH");
-        var branch = !string.IsNullOrEmpty(travisPullRequest) && travisPullRequest != "false"
-            ? $"pr-{travisPullRequest}-{EnvironmentVariable("TRAVIS_PULL_REQUEST_BRANCH")}"
-            : !string.IsNullOrEmpty(travisBranch)
-                ? travisBranch
-                : GitBranchCurrent(repositoryPath).FriendlyName;
+        var travisTag = EnvironmentVariable("TRAVIS_TAG");
+        if (!string.IsNullOrEmpty(travisTag))
+        {
+            Information($"GetVersion: Current tag is {travisTag}");
+            version = semVersion = travisTag;
+        }
+        else 
+        {
+            var travisPullRequest = EnvironmentVariable("TRAVIS_PULL_REQUEST");
+            var travisBranch = EnvironmentVariable("TRAVIS_BRANCH");
+            var branch = !string.IsNullOrEmpty(travisPullRequest) && travisPullRequest != "false"
+                ? $"pr-{travisPullRequest}-{EnvironmentVariable("TRAVIS_PULL_REQUEST_BRANCH")}"
+                : !string.IsNullOrEmpty(travisBranch)
+                    ? travisBranch
+                    : GitBranchCurrent(repositoryPath).FriendlyName;
 
-        Information($"GetVersion: Current branch is {branch}");
-        var prereleaseTag = Regex.Replace(branch, @"\W+", "-");
-        var describe = GitDescribe(repositoryPath, GitDescribeStrategy.Tags);
-        var isMaster = prereleaseTag == "master" || prereleaseTag == "-no-branch-";
-        version = string.Join(".", describe.Split(new[] { '-' }, 3).Take(2));
-        semVersion = version + (isMaster ? "" : $"-{prereleaseTag}");
+            Information($"GetVersion: Current branch is {branch}");
+            var prereleaseTag = Regex.Replace(branch, @"\W+", "-");
+            var describe = GitDescribe(repositoryPath, GitDescribeStrategy.Tags);
+            var isMaster = prereleaseTag == "master" || prereleaseTag == "-no-branch-";
+            version = string.Join(".", describe.Split(new[] { '-' }, 3).Take(2));
+            semVersion = version + (isMaster ? "" : $"-{prereleaseTag}");            
+        }
         Information($"Version: {semVersion}");
     });
 
