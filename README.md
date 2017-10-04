@@ -1,12 +1,12 @@
 # Los Angeles Metropolitan Transportation Authority (Metro) API Client
-[![Build Status](https://travis-ci.org/syncromatics/Syncromatics.Clients.Metro.svg?branch=master)](https://travis-ci.org/syncromatics/Syncromatics.Clients.Metro)
 
 A .NET library to interact with the [Metro API](http://developer.metro.net/).
 
-## Usage
+## Quickstart
 
-This package exposes .NET wrappers for select Metro APIs through the `IMetroApiClient` interface and
-its default implementation `MetroApiClient`.
+Add the [Syncromatics.Clients.Metro.Api](https://www.nuget.org/packages/Syncromatics.Clients.Metro.Api/) NuGet package to your project in the manner applicable to you.
+
+This package exposes .NET wrappers for select Metro APIs through the `IMetroApiClient` interface and its default implementation `MetroApiClient`.
 
 ### Initializing a client
 
@@ -82,6 +82,10 @@ var metroStops = client.GetStopsByStopId(stopId, "MT");
 
 ## Building
 
+[![Travis](https://img.shields.io/travis/syncromatics/Syncromatics.Clients.Metro.svg)](https://travis-ci.org/syncromatics/Syncromatics.Clients.Metro)
+[![NuGet](https://img.shields.io/nuget/v/Syncromatics.Clients.Metro.Api.svg)](https://www.nuget.org/packages/Syncromatics.Clients.Metro.Api/)
+[![NuGet Pre Release](https://img.shields.io/nuget/vpre/Syncromatics.Clients.Metro.Api.svg)](https://www.nuget.org/packages/Syncromatics.Clients.Metro.Api/)
+
 This library is built using Cake. To build and test:
 
 If running on windows
@@ -95,6 +99,20 @@ If Linux:
 ./build.sh
 ```
 
+
+## Code of Conduct
+
+We are committed to fostering an open and welcoming environment. Please read our [code of conduct](CODE_OF_CONDUCT.md) before participating in or contributing to this project.
+
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for our guide to contributing and code of conduct.
+We welcome contributions and collaboration on this project. Please read our [contributor's guide](CONTRIBUTING.md) to understand how best to work with us.
+
+## License and Authors
+
+[![Syncromatics Engineering logo](https://en.gravatar.com/userimage/100017782/89bdc96d68ad4b23998e3cdabdeb6e13.png?size=16) Syncromatics Engineering](https://github.com/syncromatics)
+
+![license](https://img.shields.io/github/license/syncromatics/Syncromatics.Clients.Metro.svg)
+![GitHub contributors](https://img.shields.io/github/contributors/syncromatics/Syncromatics.Clients.Metro.svg)
+
+This software is made available by Syncromatics Engineering under the MIT license.
