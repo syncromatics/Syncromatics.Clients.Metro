@@ -13,7 +13,7 @@ its default implementation `MetroApiClient`.
 By default, this client will use Metro's production API URL.
 
 ```csharp
-using Syncromatics.Client.Metro.Api;
+using Syncromatics.Clients.Metro.Api;
 
 IMetroApiClient client = new MetroApiClient();
 ```
@@ -21,7 +21,7 @@ IMetroApiClient client = new MetroApiClient();
 If you need to point to a different URL, give the client a `ClientSettings` instance.  After that, the rest is easy:
 
 ```csharp
-using Syncromatics.Client.Metro.Api;
+using Syncromatics.Clients.Metro.Api;
 
 var clientSettings = new ClientSettings { ServerRootUrl = "http://example.com/" };
 IMetroApiClient client = new MetroApiClient(clientSettings);
