@@ -77,7 +77,7 @@ var stopId = "12345";
 var stops = client.GetStopsByStopId(stopId);
 
 // retrieve only stops that are serviced by Metro
-var metroStops = client.GetStopsById(stopId, "MT");
+var metroStops = client.GetStopsByStopId(stopId, "MT");
 ```
 
 ## Building
