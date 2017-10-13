@@ -9,6 +9,7 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using RestEase;
 using Syncromatics.Clients.Metro.Api.Models;
+using System.Net.Http;
 
 namespace Syncromatics.Clients.Metro.Api
 {
@@ -22,7 +23,13 @@ namespace Syncromatics.Clients.Metro.Api
         
         public MetroApiClient(ClientSettings clientSettings)
         {
-            _client = new RestClient(clientSettings.ServerRootUrl)
+            var handler = new HttpClientHandler { MaxConnectionsPerServer = clientSettings.MaxConnections };
+            var httpClient = new HttpClient(handler)
+            {
+                BaseAddress = new Uri(clientSettings.ServerRootUrl)
+            };
+
+            _client = new RestClient(httpClient)
             {
                 JsonSerializerSettings = new JsonSerializerSettings
                 {
@@ -34,7 +41,7 @@ namespace Syncromatics.Clients.Metro.Api
                     {
                         new StringEnumConverter(),
                     }
-                },
+                }
             }.For<IMetroApi>();
         }
 
